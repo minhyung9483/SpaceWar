@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <style>
+        * {
+            margin: auto;
+            background: #000;
+
+        }
+
+        .wrapper {
+            width: 840px;
+            height: 850px;
+        }
+
+        #stage {
+            width: 100%;
+            height: 800px;
+            border: 2px solid red;
+            background: url("./img/bg.png");
+            position: relative;
+            overflow: hidden;
+            float: left;
+        }
+
+
+        #intro {
+            width: 300px;
+            height: 200px;
+            position: absolute;
+            text-align: center;
+            color: #fff;
+            font-size: 80px;
+            left: 270px;
+            top: 220px;
+            font-weight: bold;
+            background: transparent;
+        }
+
+        #bt_start {
+            width: 150px;
+            height: 100px;
+            position: absolute;
+            text-align: center;
+            background: url("./img/start.png");
+            background-repeat: no-repeat;
+            background-size: contain;
+            left: 345px;
+            top: 450px;
+        }
+
+        #over {
+            width: 600px;
+            height: 200px;
+            position: absolute;
+            text-align: center;
+            color: #fff;
+            font-size: 80px;
+            left: 120px;
+            top: 250px;
+            font-weight: bold;
+            background: transparent;
+            display: none;
+        }
+
+        #bt_restart {
+            width: 150px;
+            height: 100px;
+            position: absolute;
+            text-align: center;
+            background: url("./img/restart.png");
+            background-repeat: no-repeat;
+            background-size: contain;
+            left: 345px;
+            top: 380px;
+            display: none;
+        }
+
+
+        #info {
+            width: 100%;
+            height: 60px;
+
+            background: black;
+            color: #fff;
+            position: relative;
+            float: left;
+        }
+
+        #hp {
+            width: 33%;
+            height: 100%;
+            position: relative;
+            text-align: center;
+            line-height: 60px;
+            float: left;
+        }
+
+        #cscore {
+            width: 34%;
+            height: 100%;
+            position: relative;
+            text-align: center;
+            line-height: 60px;
+            float: left;
+        }
+
+        #cstage {
+            width: 33%;
+            height: 100%;
+            position: relative;
+            text-align: right;
+            line-height: 60px;
+            float: left;
+        }
+    </style>
+    <script src="./GameObject.js"></script>
+    <script src="./ObjectManager.js"></script>
+    <script src="./Sensor.js"></script>
+    <script src="./Enemy.js"></script>
+    <script src="./EnemyBullet.js"></script>
+    <script src="./Hero.js"></script>
+    <script src="./Bullet.js"></script>
+    <script src="./Wall.js"></script>
+    <script src="./Hp.js"></script>
+    <script src="./Boss.js"></script>
+    <script src="./BossHP.js"></script>
+    <script src="./Item.js"></script>
+    <script src="./common.js"></script>
+
+    <script>
+        var objectManager;
+        var bgY = 0;
+        var stage, hp, cstage;
+        var cscore;
+        var score = 0;
+        var hpbar;
+        var bossSize= 150;
+        var hpArray = [];
+        var bosshpbar;
+        var bosshpArray=[];
+        var bosshpcount=29;
+        var bossbullet,bossbullet2,bossbullet3;
+        var hpcount = 3;
+        var fireCount = 0;
+        var blocksize = 40;
+        var blockEa = 10; // blockEa * blockEa/2 개
+        var key;
+        var mystage = 1;
+        var leftEnemy = 0;
+        var gamePlay = false;
+        var bt_start, bt_restart;
+        var intro, over;
+        var enemyPic = ["./img/m1.png", "./img/m2.png", "./img/m3.png", "./img/m4.png"];
+        var explode = ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8", "e9", "e10", "e11", "e12", "e13", "e14", "e15", "e16",];
+
+        var hero, enemy, bullet, enemybullet, boss, bullet2, bullet3,bitem,hpitem;
+
+        var eatItem = false;
+
+        function init() {
+            bt_start = document.getElementById("bt_start");
+            intro = document.getElementById("intro");
+            bt_restart = document.getElementById("bt_restart");
+            over = document.getElementById("over");
+
+        }
+
+
+        function startGame() {
+            bt_start.style.display = "none";
+            intro.style.display = "none";
+            stage = document.getElementById("stage");
+            hp = document.getElementById("hp");
+            cstage = document.getElementById("cstage");
+            cscore = document.getElementById("cscore");
+            objectManager = new ObjectManager();
+            gamePlay = true;
+            
+            createHero();
+            createEnemy();
+            
+            createWall();
+            createHp();
+            showScore();
+            showStage();
+            gameLoop();
+
+        }
+
+
+        function createEnemy() { //stage 1 15개
+            //type,container,x,y,width,height,velX,velY,targetX, targetY,bg,src
+            for (var j = 0; j < blockEa / 4; j++) {
+                for (var i = 0; i < blockEa / 2; i++) {
+                    var x = getRandomByRange(0, 4);
+                    enemy = new Enemy("ENEMY", stage, 260 + (blocksize + 30) * i, 50 + (blocksize + 30) * j, blocksize, blocksize, 0, 0, 0, 0, "", enemyPic[x]);
+                    objectManager.addObject(enemy);
+
+                    leftEnemy++;
+                }
+            }
+        }
+
+        function createEnemy2() {
+            //type,container,x,y,width,height,velX,velY,targetX, targetY,bg,src
+            for (var j = 0; j < blockEa / 4; j++) {
+                for (var i = 0; i < blockEa; i++) {
+
+                    enemy = new Enemy("ENEMY", stage, 85 + (blocksize + 30) * i, 50 + (blocksize + 30) * j, blocksize, blocksize, 0, 0, 0, 0, "", "./img/enemy2.png");
+                    objectManager.addObject(enemy);
+                    leftEnemy++;
+                }
+            }
+        }
+
+        function createEnemy3() {
+            //type,container,x,y,width,height,velX,velY,targetX, targetY,bg,src
+            for (var j = 0; j < blockEa / 2; j++) {
+                for (var i = 0; i < blockEa / 2 + 1; i++) {
+                    enemy = new Enemy("ENEMY", stage, 275 + (blocksize + 10) * i, 50 + (blocksize + 10) * j, blocksize, blocksize, 0, 0, 0, 0, "", "./img/enemy2.png");
+                    objectManager.addObject(enemy);
+                    leftEnemy++;
+                }
+            }
+        }
+
+        function createBoss() {
+            for (var j = 0; j < blockEa / 4; j++) {
+                for (var i = 0; i < blockEa / 2; i++) {
+                    var x = getRandomByRange(0, 4);
+                    enemy = new Enemy("ENEMY", stage, 260 + (blocksize + 30) * i, 50 + (blocksize + 30) * j, blocksize, blocksize, 0, 0, 0, 0, "", enemyPic[x]);
+                    objectManager.addObject(enemy);
+                    
+                    leftEnemy++;
+                }
+            }
+            var randomx = getRandomByRange(0, 300);
+            var randomy = getRandomByRange(0, 300);
+            var speedx = getRandomByRange(-2, 3);
+            var speedy = getRandomByRange(-2, 3);
+            
+            boss = new Boss("BOSS", stage, randomx, randomy, bossSize, bossSize, speedx, speedy, 0, 0, "", "./img/boss2.png");
+            objectManager.addObject(boss);
+            leftEnemy++;
+
+            for (var i = 0; i < 30; i++) {
+                bosshpbar = new BossHP(boss.div,bossSize);
+                bosshpArray.push(bosshpbar);
+            }
+
+        }
+
+        function createBitem(){
+            var randomx = getRandomByRange(0, 400);
+            var randomy = getRandomByRange(0, 400);
+            var speedx = getRandomByRange(-3, 4);
+            var speedy = getRandomByRange(-3, 4);
+            bitem=new Item("BITEM", stage, randomx, randomy, blocksize, blocksize, speedx,speedy, 0, 0, "", "./img/item.png");
+                    objectManager.addObject(bitem);
+
+        }
+
+        function createHPitem(){
+            var randomx = getRandomByRange(0, 400);
+            var randomy = getRandomByRange(0, 400);
+            var speedx = getRandomByRange(-3, 4);
+            var speedy = getRandomByRange(-3, 4);
+            hpitem=new Item("HPITEM", stage, randomx, randomy, blocksize, blocksize, speedx,speedy, 0, 0, "", "./img/potion.png");
+                    objectManager.addObject(hpitem);
+
+        }
+
+
+        function enemyFire() {
+            //enemybullet = new EnemyBullet("ENEMYBULLET", stage, enemy.x + enemy.width / 2 - 5, enemy.y + enemy.height + 10, 10, 10, 3, 3, hero.x + hero.width / 2 - 5, hero.y - 30, "", "./enemy-bullet.png");
+            // objectManager.addObject(enemybullet);
+
+            for (var i = 0; i < objectManager.objectArray.length; i++) {
+                var obj = objectManager.objectArray[i];
+                if (obj.type == "ENEMY") {
+                    var x = getRandomByRange(500, 700);
+                    enemybullet = new EnemyBullet("ENEMYBULLET", stage, obj.x + obj.width / 2 - 5, obj.y + obj.height, 5, 5, (-obj.x + hero.x) / x, (-obj.y + hero.y) / x, 0, 0, "", "./img/enemy-bullet.png");
+                    objectManager.addObject(enemybullet);
+                }
+            }
+        }
+
+        function enemyFire2() {
+            for (var i = 0; i < objectManager.objectArray.length; i++) {
+                var obj = objectManager.objectArray[i];
+                if (obj.type == "ENEMY") {
+                    var x = getRandomByRange(500, 700);
+                    enemybullet = new EnemyBullet("ENEMYBULLET", stage, obj.x, obj.y + obj.height, 5, 5, (-obj.x + hero.x) / x, (-obj.y + hero.y) / x, 0, 0, "", "./img/enemy-bullet.png");
+                    objectManager.addObject(enemybullet);
+                    enemybullet = new EnemyBullet("ENEMYBULLET", stage, obj.x + obj.width / 2 - 5, obj.y + obj.height, 5, 5, (-obj.x + hero.x) / x, (-obj.y + hero.y) / x, 0, 0, "", "./img/enemy-bullet.png");
+                    objectManager.addObject(enemybullet);
+                }
+            }
+
+        }
+
+        function bossFire() {
+            for (var i = 0; i < objectManager.objectArray.length; i++) {
+                var obj = objectManager.objectArray[i];
+                if (obj.type == "BOSS") {
+                    var x = getRandomByRange(500, 700);
+                    bossbullet = new EnemyBullet("ENEMYBULLET", stage, obj.x, obj.y + obj.height, 15, 15, -2, 2, 0, 0, "", "./img/bulletr.png");
+                    objectManager.addObject( bossbullet );
+                    bossbullet2 = new EnemyBullet("ENEMYBULLET", stage, obj.x + obj.width / 2 - 5, obj.y + obj.height, 15, 15,0, 2, 0, 0, "", "./img/bulletr.png");
+                    objectManager.addObject(bossbullet2);
+                    bossbullet3 = new EnemyBullet("ENEMYBULLET", stage, obj.x + obj.width- 10, obj.y + obj.height, 15, 15,2, 2, 0, 0, "", "./img/bulletr.png");
+                    objectManager.addObject(bossbullet3);
+                }
+            }
+
+        }
+
+
+
+        function fire() {
+            for (var i = 0; i < objectManager.objectArray.length; i++) {
+                var obj = objectManager.objectArray[i];
+                if (obj.type == "HERO") {
+                    bullet = new Bullet("BULLET", stage, hero.x + hero.width / 2 - 5, hero.y - 30, 10, 70, 0, -5, 0, 0, "", "./img/bullet2.png");
+                    //생성된 총알을 오브젝트 관리자에게 등록
+                    objectManager.addObject(bullet);
+                }
+            }
+
+
+        }
+
+        function fire2() {
+
+            for (var i = 0; i < objectManager.objectArray.length; i++) {
+                var obj = objectManager.objectArray[i];
+                if (obj.type == "HERO") {
+                    bullet = new Bullet("BULLET", stage, hero.x + hero.width / 2 - 5, hero.y - 30, 10, 70, 0, -5, 0, 0, "", "./img/bullet.png");
+                    //생성된 총알을 오브젝트 관리자에게 등록
+                    objectManager.addObject(bullet);
+
+                    bullet2 = new Bullet("BULLET", stage, hero.x, hero.y - 30, 10, 70, 0, -5, 0, 0, "", "./img/bullet.png");
+                    //생성된 총알을 오브젝트 관리자에게 등록
+                    objectManager.addObject(bullet2);
+
+                    bullet3 = new Bullet("BULLET", stage, hero.x + hero.width - 10, hero.y - 30, 10, 70, 0, -5, 0, 0, "", "./img/bullet.png");
+                    //생성된 총알을 오브젝트 관리자에게 등록
+                    objectManager.addObject(bullet3);
+                }
+            }
+
+
+        }
+
+        function createHero() {
+            hero = new Hero("HERO", stage, 400, 700, 40, 40, 0, 0, 0, 0, "", "./img/hero.png");
+            //생성된 총알을 오브젝트 관리자에게 등록
+
+            objectManager.addObject(hero);
+        }
+
+        function bgEffect() {
+            bgY++;
+            stage.style.backgroundPosition = "0px " + bgY + "px";
+        }
+
+        function createWall() {
+            var wall = new Wall("WALL", stage, -10, 0, 10, 800, 0, 0, 0, 0, "red", "");
+            var wall2 = new Wall("WALL", stage, 840, 0, 10, 800, 0, 0, 0, 0, "red", "");
+            var wall3 = new Wall("WALL", stage, 0, -10, 840, 10, 0, 0, 0, 0, "red", "");
+            var wall4 = new Wall("WALL", stage, 0, 800, 840, 10, 0, 0, 0, 0, "red", "");
+            objectManager.addObject(wall);
+            objectManager.addObject(wall2);
+            objectManager.addObject(wall3);
+            objectManager.addObject(wall4);
+
+
+        }
+
+        function createHp() {
+            var hpText = document.createElement("div");
+            hpText.style.width = 55 + "px";
+            hpText.style.height = 60 + "px";
+            hpText.style.background = "none";
+            hpText.style.float = "left";
+            hpText.innerText = "HP";
+            hpText.style.fontSize = 30 + "px";
+            hp.appendChild(hpText);
+
+            for (var i = 0; i < 4; i++) {
+                hpbar = new HP(hp);
+                hpArray.push(hpbar);
+            }
+        }
+
+        
+
+        function showScore() {
+            cscore.style.fontSize = 30 + "px";
+            cscore.innerText = "현재점수 : " + score + "점";
+
+        }
+
+        function showStage() {
+            cstage.style.fontSize = 30 + "px";
+            cstage.innerText = "STAGE " + mystage;
+        }
+
+
+        function control() {
+            key = event.keyCode;
+            switch (key) {
+                case 39:
+                    hero.velX = 3;
+                    break;
+                case 37:
+                    hero.velX = -3;
+                    break;
+                case 40:
+                    hero.velY = 3;
+                    break;
+                case 38:
+                    hero.velY = -3;
+                    break;
+            }
+            if (key == 32) {
+                fire();
+                enemyFire();
+            }
+        }
+
+
+
+        function stop() {
+            if (event.keyCode != 32) {
+                if (event.keyCode == 37 || event.keyCode == 39) {
+                    hero.velX = 0;
+                }
+                if (event.keyCode == 38 || event.keyCode == 40) {
+                    hero.velY = 0;
+                }
+            }
+        }
+
+        function nextStage() {
+            mystage++;
+
+
+            if (mystage == 2) {
+                createEnemy2();
+                hpcount = 3;
+                fireCount = 0;
+                for (var i = 0; i < hpArray.length; i++) {
+                    hpArray[i].setBg("lightgreen");
+                }
+                showScore();
+                showStage();
+                createHero();
+                createBitem();
+                createWall();
+                
+                gamePlay = true;
+            }
+
+            if (mystage == 3) {
+                createBoss();
+                hpcount = 3;
+                fireCount = 0;
+                for (var i = 0; i < hpArray.length; i++) {
+                    hpArray[i].setBg("lightgreen");
+                }
+                showScore();
+                showStage();
+                createHero();
+                createHPitem();
+                createWall();
+               
+                
+                gamePlay = true;
+            }
+
+            if(mystage == 4){
+                gameOver();
+            }
+
+
+        }
+
+        function gameOver() {
+            var x = objectManager.objectArray.length;
+            for (var i = 0; i < x; i++) {
+                objectManager.removeObject(objectManager.objectArray[0]);
+            }
+
+            gamePlay = false;
+
+            over.style.display = "block";
+            bt_restart.style.display = "block";
+
+
+        }
+
+        function restart() {
+            location.reload();
+        }
+
+
+
+
+        function gameLoop() {
+            if (gamePlay == true) {
+                bgEffect();
+
+                objectManager.tick();
+                objectManager.render();
+
+
+                if (fireCount % 50 == 0) {
+                    if (eatItem == false) {
+                        fire();
+                    }
+                    else {
+                        fire2();
+                    }
+                }
+                if (fireCount % 200 == 0) {
+                    if(mystage==3){    
+                    bossFire();
+                    }
+                        enemyFire();
+                }
+
+                fireCount++;
+
+                setTimeout("gameLoop()", 1);
+            }
+        }
+
+        addEventListener("load", function () { init(); });
+    </script>
+
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+
+<body onkeydown="control()" onkeyup="stop()">
+    <div class="wrapper">
+        <div id="info">
+            <div id="hp"></div>
+            <div id="cscore"></div>
+            <div id="cstage"></div>
+        </div>
+        <div id="stage">
+            <div id="intro">SPACE WAR</div>
+            <div id="bt_start" onclick="startGame()"></div>
+            <div id="over">GAME OVER</div>
+            <div id="bt_restart" onclick="restart()"></div>
+        </div>
+
+
+    </div>
+</body>
+
+</html>
